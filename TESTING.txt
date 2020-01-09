@@ -1,0 +1,584 @@
+./test used in testing can print out all arguments it received
+
+---part 1: test case for step 1---
+(1)$ ./fail_test
+stdout:
+fail_test
+Program failed with code 1
+
+This is expected since the first line is printed by child process and second line is printed by shell according to the exit status of child process
+
+(2)$ ./sg_test
+stdout:
+Terminated by signal 11
+
+This is expected
+
+(3)$ ./test
+stdout:
+argv[0]:./test
+Program was successful
+
+This is expected since the first line is printed by child process and second line is printed by shell according to the exit status of child process
+
+(4)$(empty)
+stdout:(None)
+
+Don't execute anything and just skip this cmd
+
+(5)$     (multiple spaces)
+stdout:(None)
+
+Don't execute anything and just skip this cmd
+
+(6)$  (multiple spaces) ./test
+stdout:
+argv[0]:./test
+Program was successful
+
+skip spaces until it reach char other than white space
+
+(7)$ exit or EOF
+shell exit
+
+work as expected
+
+(8)$ exit widj
+shell exit
+
+Behaviour is undefined in README, my shell will exit in this situation
+
+---part 1 end---
+
+---part 2: test case for step 2---
+
+(1)$    "./test" "sn"
+stdout:
+argv[0]:./test
+argv[1]:sn
+Program was successful
+
+work as expected
+
+(2)$ ./test      sn
+stdout:
+argv[0]:./test
+argv[1]:sn
+Program was successful
+
+work as expected
+
+(3)$ ./test "da s"  (multiple spaces in the end)
+argv[0]:./test
+argv[1]:da s
+Program was successful
+
+work as expected
+
+(4)$ ./test "sad s"(none space in the end)
+stdout:
+argv[0]:./test
+argv[1]:sad s
+Program was successful
+
+work as expected
+
+(5)$ ./test \\\\a
+stdout:
+argv[0]:./test
+argv[1]:\\a
+Program was successful
+
+Work as expected. Two backslashes will be converted to a literal backslash
+
+(6)$ ./test \\\a
+stdout:
+argv[0]:./test
+argv[1]:\a
+Program was successful
+
+Undefined situation in README. My shell will convert the first two backslashes and will ignore the last single backslash.
+
+(7)$ ./test "sda s" "
+stderr:
+find unclosed quotation
+
+Work as expected. This command should result an error.
+
+(8)$ ./test "sda s" \"
+stdout:
+argv[0]:./test
+argv[1]:sda s
+argv[2]:"
+Program was successful
+
+work as expected. First pair of quotation mark works and last quotation mark is converted to real quotation mark because of the backslash.
+
+(9)$ ./test "sda s" \""
+stderr:
+find unclosed quotation
+
+The second to last quotation is converted to real quotation mark. So there are 3 quotation marks left which will cause an error.
+
+(10)$ ./test \a
+stdout:
+argv[0]:./test
+argv[1]:a
+Program was successful
+
+Undefined situation in README. My shell will ignore the single backslash
+
+(11)$ ./test "\\cc\ cc\\"
+stdout:
+argv[0]:./test
+argv[1]:\cc cc\
+Program was successful
+
+The single backslash is ignored.
+
+(12)$ ./test "a aa" "bb b" "c cc"
+argv[0]:./test
+argv[1]:a aa
+argv[2]:bb b
+argv[3]:c cc
+Program was successful
+
+Work as expected.
+
+(13)$ ./test "a aa"bcdef
+stdout:
+argv[0]:./test
+argv[1]:a aabcdef
+Program was successful
+
+Undefined behaviour. My shell will concatenate the quotation area with following chars.
+
+
+(14)$ ./test "1 "123 321" 88"
+stdout:
+argv[0]:./test
+argv[1]:1 123
+argv[2]:321 88
+Program was successful
+
+"1 "123 is the first argument and 321" 88" is the second one.
+
+(15)$ ./test "1 "123321"xxx"
+stdout:
+argv[0]:./test
+argv[1]:1 123321xxx
+Program was successful
+
+Except the first argument, all other string are considered as one argument.
+It is the same as "1 "+123321+"xxx"
+
+(16)$ ./test "\"hello world\""
+stdout:
+argv[0]:./test
+argv[1]:"hello world"
+Program was successful
+
+Work as expected.
+
+(17)$ ./test "\"hello world\"\"
+stderr:
+find unclosed quotation
+
+Work as expected.
+
+(18)$ ./test "\"hello world\"\\"
+stdout:
+argv[0]:./test
+argv[1]:"hello world"\
+Program was successful
+
+Work as expected.
+
+(19)$ ./test "\"hello world\"\\\"
+stderr:
+find unclosed quotation
+
+Work as expected.
+
+(20)$ ls
+stdout:
+a.out		  envp_test.cpp   fail_test.cpp   ffosh.cpp   ffosh.h~	Makefile~     sg_test	    signal_test.cpp  test_case.txt~  TESTING.txt
+commandShell.txt  envp_test.cpp~  fail_test.cpp~  ffosh.cpp~  ffosh.o	numerics.txt  sg_test.cpp   str.cpp~	     test.cpp	     TESTING.txt~
+envp_test	  fail_test	  ffosh		  ffosh.h     Makefile	README	      sg_test.cpp~  test	     test.cpp~
+Program was successful
+
+Work as expected.
+
+(21)$ sg_test
+stdout:
+Command sg_test not found
+Program failed with code 1
+
+Work as expected. Cannot find sg_test in path
+
+(22)$ ../test
+stdout:
+5 vs 5
+Program was successful
+
+Work as expected. There is a executable file called test in /home/yj140/ece551
+
+(23)$ ../test1
+stdout:
+Command ../test1 not found
+Program failed with code 1
+
+Work as expected.
+
+---part 2 end---
+
+---part 3: test cases for step 3---
+(1)$ cd ..
+stdout:
+ffosh:/home/yj140/ece551$
+
+Work as expected.
+
+$ ls
+stdout:
+000_submit	013_ch04rq	  026_read_rec1     039_read_arr2	  052_fix_vg_encr   065_ch15rq	       078_read_templ2	091_tests_lls	   104_huff_all
+001_ch01rq	014_code1	  027_tests_power   040_id_mem_errors	  053_sort_lines    066_read_constr1   079_sort_cpp	092_lls		   105_ch25_26rq
+...
+
+Work as expected.
+
+$ cd mp_miniproject
+stdout:
+ffosh:/home/yj140/ece551/mp_miniproject$
+
+Work as expected.
+
+(2)$ cd /bin
+stdout:
+ffosh:/bin$
+
+Work as expected.
+
+(3)$ cd bin
+stdout:
+cd: No such file or directory
+
+Work as expected.
+
+---following test cases are based on the execution of set test 100---
+(4)$ ./test --$test
+stdout:
+argv[0]:./test
+argv[1]:--100
+Program was successful
+
+Work as expected.
+
+(5)$ ./test 122$test
+stdout:
+argv[0]:./test
+argv[1]:122100
+Program was successful
+
+Work as expected.
+
+(6)$ ./test $test--
+stdout:
+argv[0]:./test
+argv[1]:100--
+Program was successful
+
+Work as expected.
+
+(7)$ ./test $test--$test
+stdout:
+argv[0]:./test
+argv[1]:100--100
+Program was successful
+
+Work as expected.
+
+(8)$ ./test $test122
+stdout:
+argv[0]:./test
+Program was successful
+
+According to piazza, we should find the longest possible variable. So my shell search for test122, but don't find it.
+
+(9)$ ./test $test122$test
+stdout:
+argv[0]:./test
+argv[1]:100
+Program was successful
+
+Work as expected.Can't find $test122 but find $test
+
+(10)$ ./test $test$test
+stdout:
+argv[0]:./test
+argv[1]:100100
+Program was successful
+
+Work as expected.
+
+(11)$ $test $test
+stdout:
+Command 100 not found
+Program failed with code 1
+
+Work as expected.
+
+(12)
+$ env
+stdout:
+...
+Program was successful
+
+$ export test
+$ env
+stdout:
+...
+test=100
+Program was successful
+
+Work as expected.
+
+
+$ ./envp_test
+stdout:
+...
+test=100
+PATH_1u92u193=test_val
+Program was successful
+
+Work as expected.
+
+(13)$ export auwd
+stderr:
+cannot find variable
+
+Don't have variable called auwd, print error msg.
+
+$ ./test $auwd
+stdout:
+argv[0]:./test
+Program was successful
+
+Cannot find $auwd, just ignore this argument.
+
+(14)$ export test test
+stderr:
+too many arguments
+
+print error msg if more than one arguments are given to export command
+
+(15)$ export
+stderr:
+please input enough arguments
+
+print error msg if less than one arguments are given.
+
+(16)$ rev test
+$ ./test test
+stdout:
+argv[0]:./test
+argv[1]:001
+Program was successful
+
+Work as expected.
+
+(17)$ rev test 122
+stderr:
+too many arguments
+
+Work as expected.
+
+(18)$ rev
+stderr:
+please input enough arguments
+
+Work as expected.
+---end---
+(19)$ set tt ls
+$ $tt
+stdout:
+a.out		       envp_test        fail_test	 ffosh	      ffosh.h	 Makefile       README	      sg_test.cpp~      test		 test.cpp~
+'#commandShell.txt#'   envp_test.cpp    fail_test.cpp	 ffosh.cpp    ffosh.h~	 Makefile~      sg_test       signal_test.cpp   test_case.txt~	 TESTING.txt
+ commandShell.txt      envp_test.cpp~   fail_test.cpp~	 ffosh.cpp~   ffosh.o	 numerics.txt   sg_test.cpp   str.cpp~	        test.cpp	 TESTING.txt~
+Program was successful
+
+$tt will be replaced with ls. So ls is called.
+
+(20)$ set tt-- aid
+stderr:
+variable name is not legal
+
+Have illegal character in variable name. Print error msg.
+
+(21)$ set tt t-t
+$ echo $tt
+stdout:
+t-t
+Program was successful
+
+There is no illegal character check for value.
+
+---$ set var1 ./test--
+(22)$ set var2 "ii jj"
+$ $var1 $var2
+stdout:
+argv[0]:./test
+argv[1]:ii  jj
+Program was successful
+
+Expand $var1 and $var2
+
+(23)$ set var2 ii :jj
+$ $var1 $var2
+stdout:
+argv[0]:./test
+argv[1]:ii  :jj
+Program was successful
+
+Expand $var1 and $var2
+
+(24)$ "$var1"
+stdout:
+argv[0]:./test
+Program was successful
+
+Work with quotation marks.
+
+(25)$ "    $var1   "
+stdout:
+Command   ./test    not found
+Program failed with code 1
+
+Expand $var1 and follow the quotation mark rule
+
+(26)$ "$var1" "iijj \""
+stdout:
+argv[0]:./test
+argv[1]:iijj "
+Program was successful
+
+Work as expected.
+---end---
+
+(27)$ set var1 tt
+$ set $var1 100
+$ ./test $tt
+stdout:
+argv[0]:./test
+argv[1]:100
+Program was successful
+
+Let var1=tt at first. Then set tt=100. Finally, show the value of $tt
+
+$ set x 100
+$ set y $x
+$ ./test $y
+stdout:
+argv[0]:./test
+argv[1]:100
+
+Let $x=100. Then let $y=$x=100. 
+
+(28)$ set var1
+$ set $var1
+stderr:
+please input enough arguments
+
+Let var1="". var1 expand to None, so print error msg.
+
+$ set var1
+$ rev var1
+$ echo $var1
+stdout:
+
+Let var1="". Reverse it will still give us ""
+
+(29)$ set ECE551PATH /home/yj140/ece551/mp_miniproject
+$ ls
+stdout:
+ a.out		       envp_test        fail_test	 ffosh	      ffosh.h	 Makefile       README	      sg_test.cpp~      test		 test.cpp~
+'#commandShell.txt#'   envp_test.cpp    fail_test.cpp	 ffosh.cpp    ffosh.h~	 Makefile~      sg_test       signal_test.cpp   test_case.txt~	 TESTING.txt
+ commandShell.txt      envp_test.cpp~   fail_test.cpp~	 ffosh.cpp~   ffosh.o	 numerics.txt   sg_test.cpp   str.cpp~	        test.cpp	 TESTING.txt~
+Program was successful
+
+Set variable ECE551PATH
+
+$ export ECE551PATH
+$ ls
+stdout:
+Command ls not found
+Program failed with code 1
+
+change the environment variable
+
+$ envp_test
+stdout:
+......
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+......
+ECE551PATH=/home/yj140/ece551/mp_miniproject
+
+Work as expected.
+
+(30)$ set PATH none
+$ export PATH
+$ env
+stdout:
+......
+PATH=none
+
+change the enviroment variable PATH. But it will not influence the command search.
+
+(31)
+set ECE551PATH /home/yj140/ece551:/home/yj140/ece551/mp_miniprojects
+$ export ECE551PATH
+$ test
+stdout:
+5 vs 5
+Program was successful
+
+search order is right.
+
+---part 3 end---
+
+---part 4(only did redirection part)---
+(1) $ ls > ls1
+$ cat ls1
+stdout:
+a.out
+commandShell.txt
+echo.txt
+......
+Program was successful
+
+Work as expected
+
+(2) $ ./print_test < ls1
+stdout:
+a.out
+
+./print_test will print one line to stdout;
+
+(3) $ ./print_test 2> t_err
+$ EOF
+$ cat t_err
+stdout:
+error
+
+./print_test will print "error" to stderr;
+
+(4) $ ls > ls1 < ls2
+$ cat ls1
+stdout:
+a.out
+commandShell.txt
+echo.txt
+......
+Program was successful
+
+Will only take first redirection character(<,>,2>) into account. Ignore other arguments after it.
